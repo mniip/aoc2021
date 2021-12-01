@@ -219,14 +219,19 @@ import System.IO.Unsafe
 main :: IO ()
 main = do
   args <- getArgs
-  input <- readInput <$> getContents
-  when ("1" `elem` args || null args) $ printOutput $ solve1 input
-  when ("2" `elem` args || null args) $ printOutput $ solve2 input
+  contents <- getContents
+  when ("1" `elem` args || null args) $ do
+    printOutput $ solve1 $ readInput1 contents
+  when ("2" `elem` args || null args) $ do
+    printOutput $ solve2 $ readInput2 contents
 
-fromFile filename = readInput $ unsafePerformIO $ readFile filename
+fromFile filename = readInput2 $ unsafePerformIO $ readFile filename
 
-readInput :: String -> _
-readInput = map (read @Int) . lines
+readInput1 :: String -> _
+readInput1 = map (read @Int) . lines
+
+readInput2 :: String -> _
+readInput2 = readInput1
 
 printOutput :: _ -> IO ()
 printOutput = print @Int

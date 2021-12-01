@@ -21,11 +21,8 @@ readInput2 = readInput1
 printOutput :: Int -> IO ()
 printOutput = print
 
-increases :: [Int] -> Int
-increases = sum . (zipWith (\x y -> if x < y then 1 else 0) <*> tail)
-
 solve1 :: [Int] -> Int
-solve1 = increases
+solve1 = sum . (zipWith (\x y -> if x < y then 1 else 0) <*> tail)
 
 solve2 :: [Int] -> Int
-solve2 = increases . (zipWith3 (\x y z -> x + y + z) <*> tail <*> tail . tail)
+solve2 = sum . (zipWith (\x y -> if x < y then 1 else 0) <*> drop 3)

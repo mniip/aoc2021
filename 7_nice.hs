@@ -2,17 +2,16 @@
 
 module Main where
 
-import Control.Applicative
 import Control.Monad
 import Control.Monad.ST
-import System.Environment
-import qualified Data.ByteString as BS
-import Data.ByteString (ByteString)
-import Data.Attoparsec.ByteString.Char8
+import Data.ByteString.Char8 (ByteString)
+import qualified Data.ByteString.Char8 as BS
+import Data.Char
+import qualified Data.Vector.Algorithms.Merge as V
 import Data.Vector.Unboxed (Vector)
 import qualified Data.Vector.Unboxed as V
 import qualified Data.Vector.Unboxed.Mutable as MV
-import qualified Data.Vector.Algorithms.Merge as V
+import System.Environment
 
 main :: IO ()
 main = do
@@ -25,26 +24,29 @@ main = do
     printOutput $ solve2 input
 
 readInput :: ByteString -> Vector Int
-readInput bs = case parseOnly parser bs of
-  Right r -> r
+readInput bs = runST $ do
+  mv <- MV.unsafeNew 1
+  go 0 bs 0 mv
   where
-    parser = uncurry V.fromListN <$> go1
-    go1 = do
-      x <- decimal
-      (n, xs) <- go2
-      let n' = n + 1
-      n' `seq` pure (n', x:xs)
-    go2 = (char ',' *> go1) <|> pure (0, [])
+    go i bs n mv = case BS.uncons bs of
+      Just (d, bs') | isDigit d
+        -> go i bs' (n * 10 + digitToInt d) mv
+      Just (',', bs')
+        -> add i n mv >>= go (i + 1) bs' 0
+      Just (ws, bs') | isSpace ws
+        -> go i bs' n mv
+      Nothing
+        -> add i n mv >>= V.unsafeFreeze . MV.take (i + 1)
+    add i n mv
+      | i < MV.length mv = MV.write mv i n >> pure mv
+      | otherwise = MV.unsafeGrow mv (MV.length mv) >>= add i n
 
 printOutput :: Int -> IO ()
 printOutput = print
 
-solve1 :: Vector Int -> Int
-solve1 v = sum [abs (x - p) | x <- V.toList v]
+quickSelect :: (Ord a, MV.Unbox a) => Int -> Vector a -> a
+quickSelect k v = runST $ V.thaw v >>= select k
   where
-    p = runST $ do
-      mv <- V.thaw v
-      select (V.length v `div` 2) mv
     select k mv
       | MV.length mv == 1 = MV.read mv 0
       | otherwise = do
@@ -71,6 +73,10 @@ solve1 v = sum [abs (x - p) | x <- V.toList v]
               False -> MV.swap mv i j >> goL (i + 1) (j - 1)
               True -> goR i (j - 1)
         goL 0 (MV.length mv - 2)
+
+solve1 :: Vector Int -> Int
+solve1 v = sum [abs (x - p) | x <- V.toList v]
+  where p = quickSelect (V.length v `div` 2) v
 
 solve2 :: Vector Int -> Int
 solve2 v = sum [let n = abs (x - p) in n * (n + 1) `div` 2 | x <- V.toList v]

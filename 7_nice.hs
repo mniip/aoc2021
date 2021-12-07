@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Main where
 
 import Control.Applicative
@@ -9,6 +11,7 @@ import Data.ByteString (ByteString)
 import Data.Attoparsec.ByteString.Char8
 import Data.Vector.Unboxed (Vector)
 import qualified Data.Vector.Unboxed as V
+import qualified Data.Vector.Unboxed.Mutable as MV
 import qualified Data.Vector.Algorithms.Merge as V
 
 main :: IO ()
@@ -39,11 +42,35 @@ printOutput = print
 solve1 :: Vector Int -> Int
 solve1 v = sum [abs (x - p) | x <- V.toList v]
   where
-    v' = runST $ do
+    p = runST $ do
       mv <- V.thaw v
-      V.sort mv
-      V.unsafeFreeze mv
-    p = v' V.! (V.length v `div` 2)
+      select (V.length v `div` 2) mv
+    select k mv
+      | MV.length mv == 1 = MV.read mv 0
+      | otherwise = do
+        pivot <- MV.read mv (MV.length mv - 1)
+        let
+          finish i = case compare k i of
+            LT -> select k $ MV.slice 0 i mv
+            EQ -> pure pivot
+            GT -> select (k - i - 1) $ MV.slice i (MV.length mv - i - 1) mv
+          goL i j
+            | i == j - 1 = (< pivot) <$> MV.read mv i >>= \case
+              False -> finish i
+              True -> finish (i + 1)
+            | i == j = finish i
+            | otherwise = (< pivot) <$> MV.read mv i >>= \case
+              False -> goR i j
+              True -> goL (i + 1) j
+          goR i j
+            | i == j - 1 = (>= pivot) <$> MV.read mv i >>= \case
+              False -> finish (i + 1)
+              True -> finish i
+            | i == j = finish i
+            | otherwise = (>= pivot) <$> MV.read mv j >>= \case
+              False -> MV.swap mv i j >> goL (i + 1) (j - 1)
+              True -> goR i (j - 1)
+        goL 0 (MV.length mv - 2)
 
 solve2 :: Vector Int -> Int
 solve2 v = sum [let n = abs (x - p) in n * (n + 1) `div` 2 | x <- V.toList v]

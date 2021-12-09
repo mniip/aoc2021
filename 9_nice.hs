@@ -29,7 +29,7 @@ printOutput = print
 
 solve1 :: Array (Int, Int) Int -> Int
 solve1 a = sum [1 + a ! p | p <- range $ bounds a, all (\p' -> a ! p < a ! p') $ neighbors p]
-  where neighbors (i, j) = filter (inRange $ bounds a) [(i - 1, j), (i + 1, j), (i, j - 1), (i, j + 1)]
+  where neighbors p = filter (inRange $ bounds a) $ [first, second] <*> [pred, succ] <*> [p]
 
 solve2 :: Array (Int, Int) Int -> Int
 solve2 a = product . take 3 . sortBy (flip compare) . map length . components . fst . graphFromEdges'

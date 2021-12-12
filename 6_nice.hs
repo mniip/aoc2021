@@ -2,29 +2,16 @@
 
 module Main where
 
-import Control.Monad
+import AOC.Common (aocMain)
 import qualified Data.IntMap as IM
 import Data.List (foldl')
 import Data.List.Split
-import System.Environment
 
 main :: IO ()
-main = do
-  args <- getArgs
-  contents <- getContents
-  when ("1" `elem` args || null args) $ do
-    printOutput $ solve1 $ readInput1 contents
-  when ("2" `elem` args || null args) $ do
-    printOutput $ solve2 $ readInput2 contents
+main = aocMain readInput solve1 print readInput solve2 print
 
-readInput1 :: String -> [Int]
-readInput1 = map read . splitOn ","
-
-readInput2 :: String -> [Int]
-readInput2 = readInput1
-
-printOutput :: Int -> IO ()
-printOutput = print
+readInput :: String -> [Int]
+readInput = map read . splitOn ","
 
 simulate :: Int -> [Int] -> Int
 simulate n xs = sum $ IM.elems $ foldl' (const . step) (IM.fromListWith (+) $ (,1) <$> xs) [1..n]

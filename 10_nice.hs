@@ -1,33 +1,17 @@
 module Main where
 
+import AOC.Common (aocMain, median)
 import Control.Applicative
-import Control.Monad
 import Control.Monad.Except
 import Control.Monad.State
 import Control.Monad.Trans.Maybe
 import Data.Either
 import qualified Data.Map as M
-import Data.List (sort, uncons)
+import Data.List (uncons)
 import Data.Maybe
-import System.Environment
 
 main :: IO ()
-main = do
-  args <- getArgs
-  contents <- getContents
-  when ("1" `elem` args || null args) $ do
-    printOutput $ solve1 $ readInput1 contents
-  when ("2" `elem` args || null args) $ do
-    printOutput $ solve2 $ readInput2 contents
-
-readInput1 :: String -> [String]
-readInput1 = lines
-
-readInput2 :: String -> [String]
-readInput2 = readInput1
-
-printOutput :: Int -> IO ()
-printOutput = print
+main = aocMain lines solve1 print lines solve2 print
 
 parser :: StateT String (MaybeT (Either Int)) Int
 parser = do
@@ -46,5 +30,4 @@ solve1 :: [String] -> Int
 solve1 = sum . fst . partitionEithers . map (runMaybeT . runStateT parser)
 
 solve2 :: [String] -> Int
-solve2 = middle . sort . mapMaybe (fmap fst) . snd . partitionEithers . map (runMaybeT . runStateT parser)
-  where middle xs = xs !! (length xs `div` 2)
+solve2 = median . mapMaybe (fmap fst) . snd . partitionEithers . map (runMaybeT . runStateT parser)

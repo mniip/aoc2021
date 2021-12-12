@@ -3,47 +3,28 @@
 
 module Main where
 
-import Control.Monad
+import AOC.Common (aocMain, readP, median)
 import Control.Arrow
 import Data.Char
-import qualified Data.Map as M
 import Data.Set (Set)
 import qualified Data.Set as S
-import Data.List (foldl', maximumBy, minimumBy, transpose)
+import Data.List (maximumBy, minimumBy, transpose)
 import Data.Ord
 import Data.Tuple
-import System.Environment
+import Text.Read.Lex
 
 main :: IO ()
-main = do
-  args <- getArgs
-  contents <- getContents
-  when ("1" `elem` args || null args) $ do
-    printOutput $ solve1 $ readInput1 contents
-  when ("2" `elem` args || null args) $ do
-    printOutput $ solve2 $ readInput2 contents
-
-readInput1 :: String -> [String]
-readInput1 = lines
-
-readInput2 :: String -> [String]
-readInput2 = readInput1
-
-printOutput :: Int -> IO ()
-printOutput = print
+main = aocMain lines solve1 print lines solve2 print
 
 solve1 :: [String] -> Int
 solve1 xss = fromBin commons * fromBin (invert <$> commons)
   where
     invert '0' = '1'
     invert '1' = '0'
-    commons = mostCommon <$> transpose xss
+    commons = median <$> transpose xss
 
     fromBin :: String -> Int
-    fromBin = foldl' (\n d -> n * 2 + digitToInt d) 0
-
-    mostCommon :: Ord a => [a] -> a -- ties broken by the value itself. A larger value takes precedence
-    mostCommon = fst . maximumBy (comparing swap) . M.toList . M.fromListWith (+) . map (,1)
+    fromBin = readP (readIntP 2 (`elem` "01") digitToInt)
 
 solve2 :: [String] -> Int
 solve2 xss = go 0 (S.fromList xss) 0 (S.fromList xss)

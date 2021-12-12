@@ -80,7 +80,6 @@
 
 module Main where
 
-import AOC.Common
 import AOC.Imports
 import qualified AOC.Imports.BS as BS
 import qualified AOC.Imports.BSC as BSC

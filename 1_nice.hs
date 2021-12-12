@@ -1,28 +1,15 @@
 module Main where
 
-import Control.Monad
-import System.Environment
+import AOC.Common (aocMain, count)
 
 main :: IO ()
-main = do
-  args <- getArgs
-  contents <- getContents
-  when ("1" `elem` args || null args) $ do
-    printOutput $ solve1 $ readInput1 contents
-  when ("2" `elem` args || null args) $ do
-    printOutput $ solve2 $ readInput2 contents
+main = aocMain readInput solve1 print readInput solve2 print
 
-readInput1 :: String -> [Int]
-readInput1 = map read . lines
-
-readInput2 :: String -> [Int]
-readInput2 = readInput1
-
-printOutput :: Int -> IO ()
-printOutput = print
+readInput :: String -> [Int]
+readInput = map read . lines
 
 solve1 :: [Int] -> Int
-solve1 = sum . (zipWith (\x y -> if x < y then 1 else 0) <*> tail)
+solve1 = count id . (zipWith (<) <*> tail)
 
 solve2 :: [Int] -> Int
-solve2 = sum . (zipWith (\x y -> if x < y then 1 else 0) <*> drop 3)
+solve2 = count id . (zipWith (<) <*> drop 3)

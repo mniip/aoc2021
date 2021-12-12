@@ -2,31 +2,19 @@
 {-# LANGUAGE RecordWildCards #-}
 module Main where
 
-import Control.Monad
+import Control.Arrow
+import AOC.Common (aocMain, splitOn2)
 import Data.List (foldl')
-import System.Environment
 
 main :: IO ()
-main = do
-  args <- getArgs
-  contents <- getContents
-  when ("1" `elem` args || null args) $ do
-    printOutput $ solve1 $ readInput1 contents
-  when ("2" `elem` args || null args) $ do
-    printOutput $ solve2 $ readInput2 contents
+main = aocMain readInput solve1 print readInput solve2 print
 
-readInput1 :: String -> [(Dir, Int)]
-readInput1 = map ((\[a, b] -> (readDir a, read b)) . words) . lines
+readInput :: String -> [(Dir, Int)]
+readInput = map ((readDir *** read) . splitOn2 " ") . lines
   where
     readDir "down" = Down
     readDir "up" = Up
     readDir "forward" = Forward
-
-readInput2 :: String -> [(Dir, Int)]
-readInput2 = readInput1
-
-printOutput :: Int -> IO ()
-printOutput = print
 
 data Dir = Down | Up | Forward
 

@@ -1,32 +1,19 @@
 module Main where
 
-import Control.Monad
+import AOC.Common (aocMain)
 import Data.Array
 import Data.List (elemIndex)
 import Data.List.Split
 import Data.Function ((&))
-import System.Environment
 
 main :: IO ()
-main = do
-  args <- getArgs
-  contents <- getContents
-  when ("1" `elem` args || null args) $ do
-    printOutput $ solve1 $ readInput1 contents
-  when ("2" `elem` args || null args) $ do
-    printOutput $ solve2 $ readInput2 contents
+main = aocMain readInput solve1 print readInput solve2 print
 
 type Bingo = Array (Int, Int) Int
 
-readInput1 :: String -> ([Int], [Bingo])
-readInput1 xs = splitOn "\n\n" xs & \(xs:xss)
+readInput :: String -> ([Int], [Bingo])
+readInput xs = splitOn "\n\n" xs & \(xs:xss)
     -> (map read $ splitOn "," xs, (listArray ((0, 0), (4, 4)) . map read . words) <$> xss)
-
-readInput2 :: String -> ([Int], [Bingo])
-readInput2 = readInput1
-
-printOutput :: Int -> IO ()
-printOutput = print
 
 whenWinning :: [Int] -> Bingo -> (Int, Int)
 whenWinning xs b

@@ -2,37 +2,23 @@
 
 module Main where
 
+import AOC.Common (aocMain, splitOn2)
 import Control.Arrow
-import Control.Monad
 import qualified Data.Map as M
 import Data.Set (Set)
 import qualified Data.Set as S
 import Data.List (partition, foldl')
-import System.Environment
 
 main :: IO ()
-main = do
-  args <- getArgs
-  contents <- getContents
-  when ("1" `elem` args || null args) $ do
-    printOutput $ solve1 $ readInput1 contents
-  when ("2" `elem` args || null args) $ do
-    printOutput $ solve2 $ readInput2 contents
+main = aocMain readInput solve1 print readInput solve2 print
 
 data Row = Row
   { input :: Set (Set Char)
   , output :: [Set Char]
   }
 
-readInput1 :: String -> [Row]
-readInput1 = lines >>> map \xs -> case break (== "|") $ words xs of
-  (inputs, _:outputs) -> Row (S.fromList $ S.fromList <$> inputs) (S.fromList <$> outputs)
-
-readInput2 :: String -> [Row]
-readInput2 = readInput1
-
-printOutput :: Int -> IO ()
-printOutput = print
+readInput :: String -> [Row]
+readInput = map (uncurry Row . (S.fromList . map S.fromList *** map S.fromList) . splitOn2 ["|"] . words) . lines
 
 solve1 :: [Row] -> Int
 solve1 = sum . map (length . filter (\o -> S.size o `elem` [2, 4, 3, 7]) . output)

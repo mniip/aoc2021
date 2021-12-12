@@ -3,7 +3,7 @@ module AOC.Imports
   )
   where
 
-import Prelude as Export hiding ((.), id)
+import AOC.Common as Export
 import Control.Applicative as Export
 import Control.Arrow as Export hiding ((<+>))
 import Control.Category as Export
@@ -74,7 +74,7 @@ import Data.Set as Export (Set)
 import Data.IORef as Export
 import Data.Ix as Export
 import Data.Kind as Export
-import Data.List as Export hiding (uncons)
+import Data.List as Export hiding (uncons, sortOn)
 import Data.List.Lens as Export
 import Data.List.NonEmpty as Export (NonEmpty)
 import Data.List.Split as Export
@@ -101,7 +101,7 @@ import Data.Typeable.Lens as Export
 import Data.Void as Export
 import Data.Word as Export
 import Debug.Trace as Export hiding (traceEvent)
-import GHC.Exts as Export hiding (toList, traceEvent, traceEvent)
+import GHC.Exts as Export hiding (toList, traceEvent, traceEvent, sortOn)
 import GHC.Int as Export
 import GHC.Prim as Export
 import GHC.Word as Export
@@ -110,6 +110,7 @@ import Language.Haskell.TH.Syntax as Export hiding (lift, Type, Strict, Bytes)
 import Numeric as Export
 import Numeric.Lens as Export
 import Numeric.Natural as Export
+import Prelude as Export hiding ((.), id)
 import System.Directory as Export
 import System.Environment as Export
 import System.IO as Export

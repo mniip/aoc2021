@@ -35,6 +35,10 @@ module AOC.Common
   , directions8
   , neighbors4
   , neighbors8
+  , dijkstra
+  , dijkstra'
+  , dijkstraTo
+  , dijkstraTo'
   ) where
 
 import Control.Arrow
@@ -51,6 +55,7 @@ import Data.List
   , sortBy, insertBy, maximumBy, minimumBy
   )
 import qualified Data.Map as M
+import qualified Data.PQueue.Prio.Min as PQ
 import qualified Data.Set as S
 import Data.Ord
 import Data.Tuple
@@ -214,3 +219,73 @@ neighbors4 (x, y) = [(x + dx, y + dy) | (dx, dy) <- directions4]
 {-# INLINE neighbors8 #-}
 neighbors8 :: Num a => (a, a) -> [(a, a)]
 neighbors8 (x, y) = [(x + dx, y + dy) | (dx, dy) <- directions8]
+
+dijkstra :: (Monoid w, Ord w, Ord a) => a -> (a -> [(a, w)]) -> M.Map a (w, [a])
+dijkstra init adj = go (M.singleton init (mempty, [])) S.empty (PQ.singleton mempty init)
+  where
+    go weights seen queue
+      | Just (p, queue') <- PQ.minView queue
+      , p `S.member` seen
+      = go weights seen queue'
+      | Just (p, queue') <- PQ.minView queue
+      , (w, path) <- weights M.! p
+      , (weights', queue'') <- foldl' (visit w (p:path)) (weights, queue') (adj p)
+      = go weights' (S.insert p seen) queue''
+      | otherwise
+      = weights
+    visit w path (weights, queue) (p', w') = case M.lookup p' weights of
+      Just (w'', _) | w'' <= w <> w' -> (weights, queue)
+      _ -> (M.insert p' (w <> w', path) weights, PQ.insert (w <> w') p' queue)
+
+dijkstra' :: (Monoid w, Ord w, Ord a) => a -> (a -> [(a, w)]) -> M.Map a w
+dijkstra' init adj = go (M.singleton init mempty) S.empty (PQ.singleton mempty init)
+  where
+    go weights seen queue
+      | Just ((w, p), queue') <- PQ.minViewWithKey queue
+      , p `S.member` seen
+      = go weights seen queue'
+      | Just ((w, p), queue') <- PQ.minViewWithKey queue
+      , (weights', queue'') <- foldl' (visit w) (weights, queue') (adj p)
+      = go weights' (S.insert p seen) queue''
+      | otherwise
+      = weights
+    visit w (weights, queue) (p', w') = case M.lookup p' weights of
+      Just w'' | w'' <= w <> w' -> (weights, queue)
+      _ -> (M.insert p' (w <> w') weights, PQ.insert (w <> w') p' queue)
+
+dijkstraTo :: (Monoid w, Ord w, Ord a) => a -> a -> (a -> [(a, w)]) -> Maybe (w, [a])
+dijkstraTo init stop adj = go (M.singleton init (mempty, [])) S.empty (PQ.singleton mempty init)
+  where
+    go weights seen queue
+      | Just (w, path) <- M.lookup stop weights
+      = Just (w, path)
+      | Just (p, queue') <- PQ.minView queue
+      , p `S.member` seen
+      = go weights seen queue'
+      | Just (p, queue') <- PQ.minView queue
+      , (w, path) <- weights M.! p
+      , (weights', queue'') <- foldl' (visit w (p:path)) (weights, queue') (adj p)
+      = go weights' (S.insert p seen) queue''
+      | otherwise
+      = Nothing
+    visit w path (weights, queue) (p', w') = case M.lookup p' weights of
+      Just (w'', _) | w'' <= w <> w' -> (weights, queue)
+      _ -> (M.insert p' (w <> w', path) weights, PQ.insert (w <> w') p' queue)
+
+dijkstraTo' :: (Monoid w, Ord w, Ord a) => a -> a -> (a -> [(a, w)]) -> Maybe w
+dijkstraTo' init stop adj = go (M.singleton init mempty) S.empty (PQ.singleton mempty init)
+  where
+    go weights seen queue
+      | Just w <- M.lookup stop weights
+      = Just w
+      | Just ((w, p), queue') <- PQ.minViewWithKey queue
+      , p `S.member` seen
+      = go weights seen queue'
+      | Just ((w, p), queue') <- PQ.minViewWithKey queue
+      , (weights', queue'') <- foldl' (visit w) (weights, queue') (adj p)
+      = go weights' (S.insert p seen) queue''
+      | otherwise
+      = Nothing
+    visit w (weights, queue) (p', w') = case M.lookup p' weights of
+      Just w'' | w'' <= w <> w' -> (weights, queue)
+      _ -> (M.insert p' (w <> w') weights, PQ.insert (w <> w') p' queue)

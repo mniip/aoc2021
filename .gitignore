@@ -5,4 +5,7 @@
 *.exe
 *.input
 *.output.*
+*_nice
+*.prof
+*.in*
 session_cookie

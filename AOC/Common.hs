@@ -28,6 +28,9 @@ module AOC.Common
   , readP
   , median
   , arithSum
+  , ceilDiv
+  , isqrt
+  , ceilIsqrt
   , buildGraph
   , buildGraphThin
   , undirected
@@ -182,6 +185,38 @@ median xs = sort xs !! (length xs `div` 2)
 {-# INLINE arithSum #-}
 arithSum :: Integral a => a -> a -> a
 arithSum a b = (b * (b + 1) - a * (a - 1)) `div` 2
+
+{-# INLINE ceilDiv #-}
+ceilDiv :: Integral a => a -> a -> a
+ceilDiv x y = -((-x) `div` y)
+
+{-# SPECIALIZE INLINE isqrt :: Int -> Int #-}
+{-# SPECIALIZE INLINE isqrt :: Integer -> Integer #-}
+isqrt :: Integral a => a -> a
+isqrt n
+  | n < 0 = error "isqrt: negative"
+  | otherwise = go 0 (n + 1)
+  where
+    go a b
+      | b == a + 1 = a
+      | m <= n `div` m = go m b
+      | otherwise = go a m
+      where m = (a + b) `div` 2
+
+
+{-# SPECIALIZE INLINE ceilIsqrt :: Int -> Int #-}
+{-# SPECIALIZE INLINE ceilIsqrt :: Integer -> Integer #-}
+ceilIsqrt :: Integral a => a -> a
+ceilIsqrt n
+  | n < 0 = error "ceilIsqrt: negative"
+  | n == 0 = 0
+  | otherwise = go 0 n
+  where
+    go a b
+      | b == a + 1 = b
+      | m >= n `ceilDiv` m = go a m
+      | otherwise = go m b
+      where m = (a + b) `div` 2
 
 mkGraph :: Ord k => [(k, [k])] -> (Graph, Vertex -> k, k -> Vertex)
 mkGraph adjs = (graph, out, into)

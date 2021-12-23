@@ -292,8 +292,9 @@ dijkstraTo :: (Monoid w, Ord w, Ord a) => a -> a -> (a -> [(a, w)]) -> Maybe (w,
 dijkstraTo init stop adj = go (M.singleton init (mempty, [])) S.empty (PQ.singleton mempty init)
   where
     go weights seen queue
-      | Just (w, path) <- M.lookup stop weights
-      = Just (w, path)
+      | Just (p, queue') <- PQ.minView queue
+      , p == stop
+      = Just (weights M.! p)
       | Just (p, queue') <- PQ.minView queue
       , p `S.member` seen
       = go weights seen queue'
@@ -311,7 +312,8 @@ dijkstraTo' :: (Monoid w, Ord w, Ord a) => a -> a -> (a -> [(a, w)]) -> Maybe w
 dijkstraTo' init stop adj = go (M.singleton init mempty) S.empty (PQ.singleton mempty init)
   where
     go weights seen queue
-      | Just w <- M.lookup stop weights
+      | Just ((w, p), queue') <- PQ.minViewWithKey queue
+      , p == stop
       = Just w
       | Just ((w, p), queue') <- PQ.minViewWithKey queue
       , p `S.member` seen
